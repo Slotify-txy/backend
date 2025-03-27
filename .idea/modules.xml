@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/auth-service/auth-service.iml" filepath="$PROJECT_DIR$/auth-service/auth-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/email-token-service/email-token-service.iml" filepath="$PROJECT_DIR$/email-token-service/email-token-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/notification-service/notification-service.iml" filepath="$PROJECT_DIR$/notification-service/notification-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/open-hour-service/open-hour-service.iml" filepath="$PROJECT_DIR$/open-hour-service/open-hour-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/slot-service/slot-service.iml" filepath="$PROJECT_DIR$/slot-service/slot-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/slotify-backend.iml" filepath="$PROJECT_DIR$/slotify-backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/user-service/user-service.iml" filepath="$PROJECT_DIR$/user-service/user-service.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "student.proto";
+import "coach.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "slot";
+
+message Slot {
+  string id = 1;
+  google.protobuf.Timestamp startAt = 2;
+  google.protobuf.Timestamp endAt = 3;
+  Student student = 4;
+  Coach coach = 5;
+  string classId = 6;
+  Status status = 7;
+}
+
+enum Status {
+    AVAILABLE = 0;
+    PENDING = 1;
+    APPOINTMENT = 2;
+    REJECTED = 3;
+    CANCELLED = 4;
+}

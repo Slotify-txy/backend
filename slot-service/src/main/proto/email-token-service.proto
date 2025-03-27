@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "slot";
+
+service TokenService {
+  rpc ValidateToken (google.protobuf.StringValue) returns (google.protobuf.BoolValue);
+  rpc DeleteToken (google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc DeleteTokenBySlotId (google.protobuf.StringValue) returns (google.protobuf.Empty);
+}

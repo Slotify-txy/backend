@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "coach.proto";
+import "student.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+option java_package = "user";
+
+service UserService {
+  rpc GetExistedUserOrCreateNewUser (UserRequest) returns (UserResponse);
+  rpc GetCoachById (google.protobuf.StringValue) returns (Coach);
+  rpc GetStudentById (google.protobuf.StringValue) returns (Student);
+}
+
+message UserRequest {
+  string name = 1;
+  string email = 2;
+  string picture = 3;
+  string source = 4;
+}
+
+message UserResponse {
+  string id = 1;
+}
+

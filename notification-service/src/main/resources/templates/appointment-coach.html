@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es-ES" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Slotify</title>
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 16px;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            color: #ffffff !important;
+        }
+
+        .cancel {
+            background-color: #d50100;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none !important;
+        }
+
+        .slotify {
+            color: #222
+        }
+
+    </style>
+</head>
+<body>
+<p>Hi <span th:text="${coachName}">Coach</span>,</p>
+
+<p><strong th:text="${studentName}">Student Name</strong> has confirmed the class scheduled at <strong
+        th:text="${time}">Class Time</strong>.</p>
+<p>If you need to cancel your class, you can either visit the <a th:href="@{${websiteUrl}}">website</a> or use the
+    cancel button below:</p>
+
+<div class="button-container">
+    <a class="button cancel" th:href="@{${cancelUrl}}">Cancel Class</a>
+</div>
+
+<p><strong class="slotify">Slotify</strong></p>
+
+</body>
+</html>

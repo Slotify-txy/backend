@@ -1,0 +1,4 @@
+### GET request to example server
+GET http://localhost:8080/api/v1/slot/student/bc061eb9-3b1e-4660-a36f-f50ab27caf0e/coach/bc061eb9-3b1e-4660-a36f-f50ab27caf0f
+X-Client-Id: 2rsfhp758ram6982e0hsbnf2p5
+###

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es-ES" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        .slotify {
+            color: #222
+        }
+    </style>
+    <title>Slotify</title>
+</head>
+<body>
+<p>Hi <span th:text="${studentName}">Student</span>,</p>
+
+<p>Your have successfully cancelled the class with <strong th:text="${coachName}">Coach</strong> scheduled at <strong
+        th:text="${time}">Time</strong>.</p>
+
+<p><strong class="slotify">Slotify</strong></p>
+</body>
+</html>

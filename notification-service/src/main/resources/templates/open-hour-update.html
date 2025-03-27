@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es-ES" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        a {
+            color: inherit;
+            text-decoration: none !important;
+        }
+
+        .slotify {
+            color: #222
+        }
+    </style>
+    <title>Slotify</title>
+</head>
+<body>
+<p>Hi <span th:text="${studentName}">Student</span>,</p>
+
+<p><strong th:text="${coachName}">Coach</strong> has updated their open hours. You can visit the <a
+        th:href="@{${websiteUrl}}">website</a> and schedule classes!
+
+<p><strong class="slotify">Slotify</strong></p>
+</body>
+</html>
