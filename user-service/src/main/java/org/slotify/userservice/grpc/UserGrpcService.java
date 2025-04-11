@@ -30,7 +30,6 @@ public class UserGrpcService extends UserServiceImplBase {
     public void getExistedUserOrCreateNewUser(UserRequest userRequest,
                                 StreamObserver<UserResponse> responseObserver) {
 
-        log.info("getOrCreateUser request received {}", userRequest.toString());
         String source = userRequest.getSource();
         if (!"student".equalsIgnoreCase(source) && !"coach".equalsIgnoreCase(source)) {
             throw new ResourceNotFoundException("Request source", "source", source);
@@ -76,11 +75,9 @@ public class UserGrpcService extends UserServiceImplBase {
     public void getCoachById(StringValue coachId,
                              StreamObserver<user.Coach> responseObserver) {
         String id = coachId.getValue();
-        log.info("getCoachById request received {}", id);
-
         Coach coach = coachRepository.findById(UUID.fromString(id)).orElseThrow(() -> new ResourceNotFoundException("Coach", "id", id));
 
-        log.info("Coach retrieved");
+        log.info("Coach retrieved, id: {}", id);
 
         user.Coach response = user.Coach.newBuilder()
                 .setId(coach.getId().toString())

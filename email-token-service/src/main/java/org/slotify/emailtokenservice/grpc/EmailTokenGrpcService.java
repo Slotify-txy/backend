@@ -13,7 +13,6 @@ import org.slotify.emailtokenservice.service.EmailTokenService;
 import slot.TokenGenerationRequest;
 import slot.TokenServiceGrpc.TokenServiceImplBase;
 
-
 @RequiredArgsConstructor
 @GrpcService
 public class EmailTokenGrpcService extends TokenServiceImplBase {

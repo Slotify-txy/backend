@@ -1,8 +1,13 @@
 package org.slotify.notificationservice.service.impl;
 
+import com.google.protobuf.util.JsonFormat;
+import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
+import io.awspring.cloud.sqs.annotation.SqsListener;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
@@ -20,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slotify.notificationservice.grpc.EmailTokenServiceGrpcClient;
 import org.slotify.notificationservice.util.TimestampConvertor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,10 +35,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import slot.Slot;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesAsyncClient;
 import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
@@ -44,15 +47,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
+@RequiredArgsConstructor
 @Service
 public class EmailService {
-
-    @Value("${aws.ses.from}")
+    @Value("${spring.cloud.aws.ses.from}")
     private String senderEmail;
 
     @Value("${frontend_url.student}")
@@ -61,34 +61,53 @@ public class EmailService {
     @Value("${frontend_url.coach}")
     private String coachFrontendUrl;
 
-    private final String backendApiPrefix;
+    @Value("${backend_url}")
+    private String backendUrl;
+
+    private String backendApiPrefix;
     private final SesAsyncClient sesAsyncClient;
     private final TemplateEngine templateEngine;
-    private final DateTimeFormatter startFormatterWithMins = DateTimeFormatter.ofPattern("E MMM d, yyyy h:mm a", Locale.ENGLISH);
+    private final DateTimeFormatter startFormatterWithMin = DateTimeFormatter.ofPattern("E MMM d, yyyy h:mm a", Locale.ENGLISH);
     private final DateTimeFormatter startFormatter = DateTimeFormatter.ofPattern("E MMM d, yyyy h a", Locale.ENGLISH);
-    private final DateTimeFormatter endFormatterWithMins = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH); // start time and end time must be in the same day
+    private final DateTimeFormatter endFormatterWithMin = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH); // start time and end time must be in the same day
     private final DateTimeFormatter endFormatter = DateTimeFormatter.ofPattern("h a", Locale.ENGLISH); // start time and end time must be in the same day
     private final EmailTokenServiceGrpcClient emailTokenServiceGrpcClient;
     private final JavaMailSender mailSender = new JavaMailSenderImpl();
     private static final Logger log = LoggerFactory.getLogger(
             EmailService.class);
 
-    public EmailService(@Value("${aws.credentials.access_key}") String accessKey,
-                        @Value("${aws.credentials.secret_key}") String secretKey,
-                        @Value("${backend_url}") String backendUrl,
-                        EmailTokenServiceGrpcClient emailTokenServiceGrpcClient,
-                        TemplateEngine templateEngine) {
-        this.emailTokenServiceGrpcClient = emailTokenServiceGrpcClient;
-        this.templateEngine = templateEngine;
+    @PostConstruct
+    public void init() {
         this.backendApiPrefix = backendUrl + "api/v1/slot";
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
-        this.sesAsyncClient = SesAsyncClient.builder()
-                .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                .build();
     }
 
-    public void sendEmail(MimeMessage message) throws MessagingException, IOException {
+    @SqsListener("${spring.cloud.aws.sqs.queue.open-hour-update}")
+    public void listenToOpenHourUpdate(@SnsNotificationMessage final String message) {
+        try {
+            Coach.Builder builder = Coach.newBuilder();
+            JsonFormat.parser().merge(message, builder);
+            Coach coach = builder.build();
+            sendOpenHourUpdateEmail(coach);
+            log.info("Open hour update emails sent for Coach, id: {}", coach.getId());
+        } catch (Exception e) {
+            log.error("Couldn't send open hour update emails: {}", e.getMessage());
+        }
+    }
+
+    @SqsListener("${spring.cloud.aws.sqs.queue.slot-status-update}")
+    public void listenToSlotStatusUpdate(@SnsNotificationMessage final String message) {
+        try {
+            Slot.Builder builder = Slot.newBuilder();
+            JsonFormat.parser().merge(message, builder);
+            Slot slot = builder.build();
+            sendSlotStatusUpdateEmail(slot);
+            log.info("Slot status update emails sent, id: {}, student_id: {}, coach_id: {}, status: {}", slot.getId(), slot.getStudent().getId(), slot.getCoach().getId(), slot.getStatus());
+        } catch (Exception e) {
+            log.error("Couldn't send slot status update  emails: {}", e.getMessage());
+        }
+    }
+
+    private void sendEmail(MimeMessage message) throws MessagingException, IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         message.writeTo(outputStream);
         byte[] rawMessageBytes = outputStream.toByteArray();
@@ -156,7 +175,7 @@ public class EmailService {
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
         LocalDateTime endAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getEndAt());
 
-        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMins) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMins);
+        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMin) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMin);
 
         helper.setFrom(new InternetAddress(senderEmail, "Slotify"));
         helper.setTo(student.getEmail());
@@ -190,7 +209,7 @@ public class EmailService {
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
         LocalDateTime endAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getEndAt());
 
-        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMins) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMins);
+        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMin) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMin);
 
         // email to student
         MimeMessage studentMessage = mailSender.createMimeMessage();
@@ -259,7 +278,7 @@ public class EmailService {
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
         LocalDateTime endAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getEndAt());
-        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMins) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMins);
+        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMin) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMin);
 
         // email to student
         MimeMessage studentMessage = mailSender.createMimeMessage();
@@ -316,7 +335,7 @@ public class EmailService {
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
         LocalDateTime endAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getEndAt());
-        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMins) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMins);
+        String time = startAt.format(startAt.getMinute() == 0 ? startFormatter: startFormatterWithMin) + " - " + endAt.format(endAt.getMinute() == 0? endFormatter : endFormatterWithMin);
 
         // email to student
         MimeMessage studentMessage = mailSender.createMimeMessage();

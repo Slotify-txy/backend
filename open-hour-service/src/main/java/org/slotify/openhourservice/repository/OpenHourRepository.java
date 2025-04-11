@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,4 +17,5 @@ public interface OpenHourRepository extends JpaRepository<OpenHour, UUID> {
     @Transactional
     void deleteOpenHoursByCoachId(UUID coachId);
 
+    void deleteOpenHoursByEndAtBefore(LocalDateTime cutoffDate);
 }

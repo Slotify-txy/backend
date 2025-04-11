@@ -2,6 +2,7 @@ package org.slotify.openhourservice.service;
 
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.slotify.openhourservice.entity.OpenHour;
 
 import java.util.List;

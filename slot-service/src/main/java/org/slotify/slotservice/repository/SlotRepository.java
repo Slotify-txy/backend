@@ -38,4 +38,5 @@ public interface SlotRepository extends JpaRepository<Slot, UUID> {
             @Param("coachId") UUID coachId
     );
 
+    void deleteSlotsByEndAtBefore(LocalDateTime cutoffDate);
 }

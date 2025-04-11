@@ -1,14 +1,14 @@
 package org.slotify.openhourservice.service.impl;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slotify.openhourservice.entity.OpenHour;
 import org.slotify.openhourservice.exception.ResourceNotFoundException;
 import org.slotify.openhourservice.grpc.UserServiceGrpcClient;
-import org.slotify.openhourservice.kafka.KafkaProducer;
 import org.slotify.openhourservice.repository.OpenHourRepository;
 import org.slotify.openhourservice.service.OpenHourService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import user.Coach;
 
@@ -16,12 +16,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OpenHourServiceImpl implements OpenHourService {
+    @Value("${spring.cloud.aws.sns.topic.arn}")
+    private String topicArn;
+
     private static final Logger log = LoggerFactory.getLogger(OpenHourServiceImpl.class);
     private final OpenHourRepository openHourRepository;
     private final UserServiceGrpcClient userServiceGrpcClient;
-    private final KafkaProducer kafkaProducer;
+    private final SnsPublisher snsPublisher;
 
     @Override
     public List<OpenHour> getOpenHoursByCoachId(UUID coachId) {
@@ -35,12 +38,9 @@ public class OpenHourServiceImpl implements OpenHourService {
 
     @Override
     public List<OpenHour> createOpenHours(UUID coachId, List<OpenHour> openHours) {
-        log.info("Creating OpenHours {}", openHours);
         List<OpenHour> savedOpenHours = openHourRepository.saveAll(openHours);
         Coach coach = userServiceGrpcClient.getCoachById(coachId);
-        log.info("coach: id {}", coach.getId());
-        kafkaProducer.sendEmailNotification(coach);
-        log.info("OpenHours saved: {}", savedOpenHours);
+        snsPublisher.publish(topicArn, coach);
         return savedOpenHours;
     }
 

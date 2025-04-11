@@ -1,0 +1,4 @@
+{
+  "app": "mvn -e compile exec:java -Dexec.mainClass=org.slotify.infrastructure.InfrastructureApplication",
+  "requireApproval": "never"
+}

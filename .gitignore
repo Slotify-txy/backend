@@ -1,1 +1,7 @@
 /data/testdb.mv.db
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr

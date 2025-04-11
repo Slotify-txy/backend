@@ -31,6 +31,7 @@ public class EmailTokenServiceImpl implements EmailTokenService {
         emailToken = new EmailToken(token, id, expirationTime);
 
         emailTokenRepository.save(emailToken);
+        log.info("Created email token: {}", emailToken);
 
         return token.toString();
     }
@@ -41,13 +42,14 @@ public class EmailTokenServiceImpl implements EmailTokenService {
     }
 
     public void deleteToken(String token) {
-        log.info("Deleting token {}", token);
         emailTokenRepository.deleteById(UUID.fromString(token));
+        log.info("Deleted token: {}", token);
     }
 
     @Override
     @Transactional
     public void deleteTokenBySlot(String slotId) {
         emailTokenRepository.deleteEmailTokenBySlotId(UUID.fromString(slotId));
+        log.info("Deleted token by slot id, id: {}", slotId);
     }
 }

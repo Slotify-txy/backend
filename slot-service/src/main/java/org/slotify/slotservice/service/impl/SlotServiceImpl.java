@@ -1,8 +1,12 @@
 package org.slotify.slotservice.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.JsonFormat;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slotify.slotservice.constant.FrontendSource;
@@ -12,10 +16,13 @@ import org.slotify.slotservice.exception.ResourceNotFoundException;
 import org.slotify.slotservice.exception.SlotStatusStaleException;
 import org.slotify.slotservice.grpc.EmailTokenServiceGrpcClient;
 import org.slotify.slotservice.grpc.UserServiceGrpcClient;
-import org.slotify.slotservice.kafka.KafkaProducer;
 import org.slotify.slotservice.repository.SlotRepository;
 import org.slotify.slotservice.service.SlotService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.PublishResponse;
 import user.Coach;
 import user.Student;
 
@@ -25,13 +32,16 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SlotServiceImpl implements SlotService {
+    @Value("${spring.cloud.aws.sns.topic.arn}")
+    private String topicArn;
+
     private final SlotRepository slotRepository;
     private final UserServiceGrpcClient userServiceGrpcClient;
-    private final KafkaProducer kafkaProducer;
     private final EmailTokenServiceGrpcClient emailTokenServiceGrpcClient;
     private static final Logger log = LoggerFactory.getLogger(SlotServiceImpl.class);
+    private final SnsPublisher snsPublisher;
 
     @Override
     public List<Slot> getSlotsByStudentIdAndCoachId(UUID studentId, UUID coachId, FrontendSource source) {
@@ -59,7 +69,7 @@ public class SlotServiceImpl implements SlotService {
 
         newSlots.forEach(slot -> {
             if (slot.getStatus().equals(SlotStatus.PENDING)) {
-                kafkaProducer.sendEmailNotification(convertToGrpcSlot(slot));
+                snsPublisher.publish(topicArn, convertToGrpcSlot(slot));
             }
         });
         return newSlots;
@@ -118,16 +128,11 @@ public class SlotServiceImpl implements SlotService {
 
         emailTokenServiceGrpcClient.deleteTokenBySlotId(slot.getId());
 
-        kafkaProducer.sendEmailNotification(convertToGrpcSlot(slot));
+        snsPublisher.publish(topicArn, convertToGrpcSlot(slot));
 
         return updatedSlot;
     }
 
-    @Override
-    @Transactional
-    public void deleteSlotsByStudentIdAndCoachId(UUID studentId, UUID coachId) {
-        slotRepository.deleteSlotsByStudentIdAndCoachIdAndStatus(studentId, coachId, SlotStatus.AVAILABLE);
-    }
 
     private slot.Slot convertToGrpcSlot(Slot slotEntity) {
         Student student = userServiceGrpcClient.getStudentById(slotEntity.getStudentId());
