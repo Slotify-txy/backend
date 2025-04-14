@@ -2,17 +2,17 @@ package org.slotify.infrastructure;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import software.amazon.awscdk.App;
+import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.ec2.Port;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.ecs.*;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.logs.RetentionDays;
 import software.amazon.awscdk.services.rds.DatabaseInstance;
+import software.constructs.Construct;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,32 +24,37 @@ import java.util.Objects;
 public class ServiceStack extends Stack {
 
     private FargateService service;
+    private SecurityGroup serviceSG;
 
     public ServiceStack(
-            final App scope,
+            final Construct scope,
             final String id,
             final StackProps props,
+            final Vpc vpc,
             final Cluster ecsCluster,
-            final String imageName,
             final List<Integer> ports,
             final DatabaseInstance db,
-            final String dbName,
-            final SecurityGroup dbSG,
-            final SecurityGroup serviceSG,
+            final ServiceInfo serviceInfo,
             final Map<String, String> additionalEnvVars
     ) {
         super(scope, id, props);
+        this.serviceSG = createSG(vpc, serviceInfo.getServiceName());
         this.service = createFargateService(
                 ecsCluster,
-                imageName,
+                serviceInfo.getServiceName(),
                 ports,
                 db,
-                dbName,
-                dbSG,
+                serviceInfo.getDbName(),
                 serviceSG,
                 additionalEnvVars
         );
+
+        CfnOutput.Builder.create(this, serviceInfo.getServiceName() + "-sg-export")
+                .value(serviceSG.getSecurityGroupId())
+                .exportName(serviceInfo.getServiceName() + "-sg-id")
+                .build();
     }
+
 
     FargateService createFargateService(
             Cluster ecsCluster,
@@ -57,10 +62,10 @@ public class ServiceStack extends Stack {
             List<Integer> ports,
             DatabaseInstance db,
             String dbName,
-            SecurityGroup dbSG,
             SecurityGroup serviceSG,
             Map<String, String> additionalEnvVars
     ) {
+
 
         FargateTaskDefinition taskDefinition =
                 FargateTaskDefinition.Builder.create(this, imageName + "Task")
@@ -105,8 +110,6 @@ public class ServiceStack extends Stack {
             envVars.put("SPRING_JPA_HIBERNATE_DDL_AUTO", "update");
             envVars.put("SPRING_SQL_INIT_MODE", "always");
             envVars.put("SPRING_DATASOURCE_HIKARI_INITIALIZATION_FAIL_TIMEOUT", "60000");
-
-            dbSG.addIngressRule(serviceSG, Port.tcp(3306), "Allow " + imageName + " to access " + dbName);
         }
 
         containerOptions.environment(envVars);
@@ -121,6 +124,14 @@ public class ServiceStack extends Stack {
                 .cloudMapOptions(CloudMapOptions.builder()
                         .name(imageName)
                         .build())
+                .build();
+    }
+
+    private SecurityGroup createSG(Vpc vpc, String name) {
+        return SecurityGroup.Builder.create(this,"slotify_" + name + "_SG")
+                .vpc(vpc)
+                .description("Security group for " + name)
+                .allowAllOutbound(true)
                 .build();
     }
 }

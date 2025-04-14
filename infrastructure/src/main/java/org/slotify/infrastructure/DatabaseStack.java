@@ -3,12 +3,11 @@ package org.slotify.infrastructure;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import software.amazon.awscdk.*;
-import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.ec2.InstanceType;
-import software.amazon.awscdk.services.ecs.CloudMapNamespaceOptions;
-import software.amazon.awscdk.services.ecs.Cluster;
+import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.rds.*;
 import software.amazon.awscdk.services.route53.CfnHealthCheck;
+import software.constructs.Construct;
 
 import java.util.List;
 import java.util.Map;
@@ -16,55 +15,31 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class DatabaseStack extends Stack {
-    private final Vpc vpc;
-    private final DatabaseInstance userDb;
-    private final DatabaseInstance slotDb;
-    private final DatabaseInstance openHourDb;
-    private final DatabaseInstance emailTokenDb;
-    private final CfnHealthCheck userDbHealthCheck;
-    private final CfnHealthCheck slotDbHealthCheck;
-    private final CfnHealthCheck openHourDbHealthCheck;
-    private final CfnHealthCheck emailTokenDbHealthCheck;
+    private final DatabaseInstance db;
+    private final CfnHealthCheck healthCheck;
+    private final SecurityGroup dbSG;
 
     public DatabaseStack(
-            final App scope,
+            final Construct scope,
             final String id,
             final StackProps props,
             final Vpc vpc,
-            final String userDbName,
-            final String slotDbName,
-            final String openHourDbName,
-            final String emailTokenDbName,
-            final SecurityGroup userDbSG,
-            final SecurityGroup slotDbSG,
-            final SecurityGroup openHourDbSG,
-            final SecurityGroup emailTokenDbSG
+            final String dbName
     ) {
         super(scope, id, props);
-        this.vpc = vpc;
+        this.dbSG = createSG(vpc, dbName);
 
-        this.userDb = createDatabase(userDbName, userDbName, userDbSG);
-        this.slotDb =
-                createDatabase(slotDbName, slotDbName, slotDbSG);
-        this.openHourDb =
-                createDatabase(openHourDbName, openHourDbName, openHourDbSG);
-        this.emailTokenDb =
-                createDatabase(emailTokenDbName, emailTokenDbName, emailTokenDbSG);
+        CfnOutput.Builder.create(this, dbName + "-sg-export")
+                .value(dbSG.getSecurityGroupId())
+                .exportName(dbName + "-sg-id")
+                .build();
 
-        this.userDbHealthCheck =
-                createDbHealthCheck(userDb, userDbName + "HealthCheck");
-
-        this.slotDbHealthCheck =
-                createDbHealthCheck(slotDb, slotDbName + "HealthCheck");
-
-        this.openHourDbHealthCheck =
-                createDbHealthCheck(openHourDb, openHourDbName + "HealthCheck");
-
-        this.emailTokenDbHealthCheck =
-                createDbHealthCheck(emailTokenDb, emailTokenDbName + "HealthCheck");
+        this.db = createDatabase(vpc, dbName, dbName, dbSG);
+        this.healthCheck =
+                createDbHealthCheck(db, dbName + "HealthCheck");
     }
 
-    private DatabaseInstance createDatabase(String id, String dbName, SecurityGroup sg) {
+    private DatabaseInstance createDatabase(Vpc vpc, String id, String dbName, SecurityGroup sg) {
         return DatabaseInstance.Builder
                 .create(this, id)
                 .engine(DatabaseInstanceEngine.mysql(
@@ -100,6 +75,14 @@ public class DatabaseStack extends Stack {
                         .requestInterval(30)
                         .failureThreshold(3)
                         .build())
+                .build();
+    }
+
+    private SecurityGroup createSG(Vpc vpc, String name) {
+        return SecurityGroup.Builder.create(this,"slotify_" + name + "_SG")
+                .vpc(vpc)
+                .description("Security group for " + name)
+                .allowAllOutbound(true)
                 .build();
     }
 }
