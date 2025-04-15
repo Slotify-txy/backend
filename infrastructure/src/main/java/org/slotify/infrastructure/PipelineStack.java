@@ -28,7 +28,7 @@ public class PipelineStack extends Stack {
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
-                        .commands(List.of("/usr/bin/env bash -c 'npm install -g aws-cdk && npx cdk synth'"))
+                        .commands(List.of("/usr/bin/env bash -c 'npm install -g aws-cdk && export PATH=$(npm bin -g):$PATH && cd infrastructure && mvn clean install && npx cdk synth'"))
                         .build())
                 .build();
 
