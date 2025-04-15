@@ -9,7 +9,7 @@ import software.amazon.awscdk.pipelines.ConnectionSourceOptions;
 import software.amazon.awscdk.pipelines.ShellStep;
 import software.constructs.Construct;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class PipelineStack extends Stack {
     public PipelineStack(final Construct scope, final String id, final StackProps props) {
@@ -28,7 +28,7 @@ public class PipelineStack extends Stack {
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
-                        .commands(Arrays.asList("npm install -g aws-cdk", "cdk synth"))
+                        .commands(List.of("/bin/bash -c 'npm install -g aws-cdk && export PATH=$(npm bin -g):$PATH && cdk synth'"))
                         .build())
                 .build();
 
