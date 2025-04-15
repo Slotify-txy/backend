@@ -29,7 +29,7 @@ public class PipelineStack extends Stack {
                                         "npm install -g aws-cdk",
                                         "cd infrastructure",
                                         "mvn clean install",
-                                        "cdk synth"
+                                        "npx cdk synth"
                                 ))
                                 .build()))
                 .build();
