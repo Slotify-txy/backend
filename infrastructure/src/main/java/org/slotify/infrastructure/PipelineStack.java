@@ -6,8 +6,6 @@ import software.amazon.awscdk.StageProps;
 import software.amazon.awscdk.pipelines.*;
 import software.constructs.Construct;
 
-import java.util.List;
-
 public class PipelineStack extends Stack {
     public PipelineStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
@@ -25,16 +23,16 @@ public class PipelineStack extends Stack {
                 .synth(new ShellStep("Synth",
                         ShellStepProps.builder()
                                 .input(source)
-                                .commands(List.of(
-                                        "cd infrastructure",
-                                        "mvn clean install",
-                                        "npm init -y", // Create a package.json
-                                        "npm install --save-dev aws-cdk-lib",
-                                        "ls -la node_modules/.bin", // Debug to see available binaries
-                                        "node_modules/.bin/cdk --version", // Use the explicit path
-                                        "node_modules/.bin/cdk synth"
-                                ))
-                                .primaryOutputDirectory("infrastructure/cdk.out")  // Specify the output directory
+//                                .commands(List.of(
+//                                        "cd infrastructure",
+//                                        "mvn clean install",
+//                                        "npm init -y", // Create a package.json
+//                                        "npm install --save-dev aws-cdk-lib",
+//                                        "ls -la node_modules/.bin", // Debug to see available binaries
+//                                        "node_modules/.bin/cdk --version", // Use the explicit path
+//                                        "node_modules/.bin/cdk synth"
+//                                ))
+//                                .primaryOutputDirectory("infrastructure/cdk.out")  // Specify the output directory
                                 .build()))
                 .build();
 
