@@ -28,9 +28,11 @@ public class PipelineStack extends Stack {
                                 .commands(List.of(
                                         "cd infrastructure",
                                         "mvn clean install",
-                                        "npm install aws-cdk-lib",
-                                        "npx cdk --version",  // Debug command
-                                        "npx cdk synth"
+                                        "npm init -y", // Create a package.json
+                                        "npm install --save-dev aws-cdk-lib",
+                                        "ls -la node_modules/.bin", // Debug to see available binaries
+                                        "node_modules/.bin/cdk --version", // Use the explicit path
+                                        "node_modules/.bin/cdk synth"
                                 ))
                                 .primaryOutputDirectory("infrastructure/cdk.out")  // Specify the output directory
                                 .build()))
