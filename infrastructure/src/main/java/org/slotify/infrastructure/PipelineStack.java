@@ -26,7 +26,12 @@ public class PipelineStack extends Stack {
                         ShellStepProps.builder()
                                 .input(source)
                                 .commands(List.of(
-                                        "npm install -g aws-cdk && export PATH=$(npm bin -g):$PATH && cd infrastructure && mvn clean install && npx cdk synth"
+                                        "npm install -g aws-cdk",
+                                        "echo $PATH",
+                                        "which cdk || echo 'cdk not found'",
+                                        "cd infrastructure",
+                                        "mvn clean install",
+                                        "npx cdk synth"
                                 ))
                                 .build()))
                 .build();
