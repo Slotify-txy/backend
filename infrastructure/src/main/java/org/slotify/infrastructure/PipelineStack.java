@@ -3,8 +3,13 @@ package org.slotify.infrastructure;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.StageProps;
-import software.amazon.awscdk.pipelines.*;
+import software.amazon.awscdk.pipelines.CodePipeline;
+import software.amazon.awscdk.pipelines.CodePipelineSource;
+import software.amazon.awscdk.pipelines.ConnectionSourceOptions;
+import software.amazon.awscdk.pipelines.ShellStep;
 import software.constructs.Construct;
+
+import java.util.Arrays;
 
 public class PipelineStack extends Stack {
     public PipelineStack(final Construct scope, final String id, final StackProps props) {
@@ -20,20 +25,11 @@ public class PipelineStack extends Stack {
 
         CodePipeline pipeline = CodePipeline.Builder.create(this, "SlotifyPipeline")
                 .pipelineName("SlotifyPipeline")
-                .synth(new ShellStep("Synth",
-                        ShellStepProps.builder()
-                                .input(source)
-//                                .commands(List.of(
-//                                        "cd infrastructure",
-//                                        "mvn clean install",
-//                                        "npm init -y", // Create a package.json
-//                                        "npm install --save-dev aws-cdk-lib",
-//                                        "ls -la node_modules/.bin", // Debug to see available binaries
-//                                        "node_modules/.bin/cdk --version", // Use the explicit path
-//                                        "node_modules/.bin/cdk synth"
-//                                ))
-//                                .primaryOutputDirectory("infrastructure/cdk.out")  // Specify the output directory
-                                .build()))
+                .synth(ShellStep.Builder
+                        .create("Synth")
+                        .input(source)
+                        .commands(Arrays.asList("npm install -g aws-cdk", "cdk synth"))
+                        .build())
                 .build();
 
         StageProps stageProps = StageProps.builder().env(props.getEnv()).build();
