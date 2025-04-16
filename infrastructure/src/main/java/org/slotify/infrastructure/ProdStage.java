@@ -10,15 +10,15 @@ import software.constructs.Construct;
 import java.util.List;
 import java.util.Map;
 
-public class AppStage extends Stage {
-    public AppStage(final Construct scope, final String id, final StageProps props) {
+public class ProdStage extends Stage {
+    public ProdStage(final Construct scope, final String id, final StageProps props) {
         super(scope, id, props);
         ServiceInfo apiGatewayServiceInfo = new ServiceInfo("api-gateway", 8084, null, null);
         ServiceInfo authServiceInfo = new ServiceInfo("auth-service", 8082, null, null);
         ServiceInfo userServiceInfo = new ServiceInfo("user-service", 8081, 9001, "userDB");
-        ServiceInfo slotServiceInfo = new ServiceInfo("slot-service", 8080, 9002, "slotDB");
-        ServiceInfo openHourServiceInfo = new ServiceInfo("open-hour-service", 8083, null, "openHourDB");
-        ServiceInfo emailTokenServiceInfo = new ServiceInfo("email-token-service", 8086, 9003, "emailTokenDB");
+        ServiceInfo slotServiceInfo = new ServiceInfo("slot-service", 8080, 9002, "slotDbStack");
+        ServiceInfo openHourServiceInfo = new ServiceInfo("open-hour-service", 8083, null, "openHourDbStack");
+        ServiceInfo emailTokenServiceInfo = new ServiceInfo("email-token-service", 8086, 9003, "emailTokenDbStack");
         ServiceInfo notificationServiceInfo = new ServiceInfo("notification-service", 8085, null, null);
 
         StackProps stackProps = StackProps.builder()
@@ -33,12 +33,17 @@ public class AppStage extends Stage {
 
         SNSAndSQSStack snsAndSQSStack = new SNSAndSQSStack(this, "sns-and-sqs-stack", stackProps);
 
-        new SecurityGroupStack(this, "security-group-stack", stackProps, vpc, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
+        SecurityGroupStack securityGroupStack = new SecurityGroupStack(this, "security-group-stack", stackProps, vpc, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
 
-        DatabaseStack useDB = new DatabaseStack(this, "slotify-" + userServiceInfo.getDbName(), stackProps, vpc, userServiceInfo.getDbName());
-        DatabaseStack slotDB = new DatabaseStack(this, "slotify-" + slotServiceInfo.getDbName(), stackProps, vpc, slotServiceInfo.getDbName());
-        DatabaseStack openHourDB = new DatabaseStack(this, "slotify-" + openHourServiceInfo.getDbName(), stackProps, vpc, openHourServiceInfo.getDbName());
-        DatabaseStack emailTokenDB = new DatabaseStack(this, "slotify-" + emailTokenServiceInfo.getDbName(), stackProps, vpc, emailTokenServiceInfo.getDbName());
+        DatabaseStack useDbStack = new DatabaseStack(this, "slotify-" + userServiceInfo.getDbName(), stackProps, vpc, userServiceInfo.getDbName());
+        DatabaseStack slotDbStack = new DatabaseStack(this, "slotify-" + slotServiceInfo.getDbName(), stackProps, vpc, slotServiceInfo.getDbName());
+        DatabaseStack openHourDbStack = new DatabaseStack(this, "slotify-" + openHourServiceInfo.getDbName(), stackProps, vpc, openHourServiceInfo.getDbName());
+        DatabaseStack emailTokenDbStack = new DatabaseStack(this, "slotify-" + emailTokenServiceInfo.getDbName(), stackProps, vpc, emailTokenServiceInfo.getDbName());
+
+        useDbStack.getNode().addDependency(securityGroupStack);
+        slotDbStack.getNode().addDependency(securityGroupStack);
+        openHourDbStack.getNode().addDependency(securityGroupStack);
+        emailTokenDbStack.getNode().addDependency(securityGroupStack);
 
         ApiGatewayServiceStack apiGatewayServiceStack = new ApiGatewayServiceStack(
                 this,
@@ -49,6 +54,8 @@ public class AppStage extends Stage {
                 apiGatewayServiceInfo.getServicePort(),
                 "http://" + authServiceInfo.getServiceAddress() + ":" + authServiceInfo.getServicePort()
         );
+
+        apiGatewayServiceStack.getNode().addDependency(securityGroupStack);
 
         ServiceStack authServiceStack = new ServiceStack(
                 this,
@@ -64,22 +71,24 @@ public class AppStage extends Stage {
                 )
         );
 
+        authServiceStack.getNode().addDependency(securityGroupStack);
+
         ServiceStack userServiceStack = new ServiceStack(
                 this,
                 "slotify-user-service",
                 stackProps,
                 ecsCluster,
                 List.of(userServiceInfo.getServicePort(), userServiceInfo.getGRPCPort()),
-                useDB.getDb(),
+                useDbStack.getDb(),
                 userServiceInfo,
                 Map.of(
                         "SLOT_SERVICE_ADDRESS", slotServiceInfo.getServiceAddress(),
                         "SLOT_SERVICE_GRPC_PORT", slotServiceInfo.getGRPCPort().toString()
                 )
         );
-//        FargateService userService = userServiceStack.getService();
-//        userService.getNode().addDependency(databaseStack.getUserDbHealthCheck());
-//        userService.getNode().addDependency(databaseStack.getUserDb());
+
+        userServiceStack.getNode().addDependency(securityGroupStack);
+        userServiceStack.getNode().addDependency(useDbStack);
 
         ServiceStack slotServiceStack = new ServiceStack(
                 this,
@@ -87,7 +96,7 @@ public class AppStage extends Stage {
                 stackProps,
                 ecsCluster,
                 List.of(slotServiceInfo.getServicePort(), slotServiceInfo.getGRPCPort()),
-                slotDB.getDb(),
+                slotDbStack.getDb(),
                 slotServiceInfo,
                 Map.of(
                         "EMAIL_TOKEN_SERVICE_ADDRESS", emailTokenServiceInfo.getServiceAddress(),
@@ -97,10 +106,9 @@ public class AppStage extends Stage {
                         "SPRING_CLOUD_AWS_SNS_TOPIC_ARN", snsAndSQSStack.getSlotStatusUpdateTopic().getTopicArn()
                 )
         );
-//        FargateService slotService = slotServiceStack.getService();
-//        slotService.getNode().addDependency(databaseStack.getSlotDbHealthCheck());
-//        slotService.getNode().addDependency(databaseStack.getSlotDb());
-//        slotService.getNode().addDependency(snsAndSQSStack.getSlotStatusUpdateTopic());
+
+        slotServiceStack.getNode().addDependency(securityGroupStack);
+        slotServiceStack.getNode().addDependency(slotDbStack);
 
         ServiceStack openHourServiceStack = new ServiceStack(
                 this,
@@ -108,7 +116,7 @@ public class AppStage extends Stage {
                 stackProps,
                 ecsCluster,
                 List.of(openHourServiceInfo.getServicePort()),
-                openHourDB.getDb(),
+                openHourDbStack.getDb(),
                 openHourServiceInfo,
                 Map.of(
                         "USER_SERVICE_ADDRESS", userServiceInfo.getServiceAddress(),
@@ -116,10 +124,9 @@ public class AppStage extends Stage {
                         "SPRING_CLOUD_AWS_SNS_TOPIC_ARN", snsAndSQSStack.getOpenHourUpdateTopic().getTopicArn()
                 )
         );
-//        FargateService openHourService = openHourServiceStack.getService();
-//        openHourService.getNode().addDependency(databaseStack.getOpenHourDbHealthCheck());
-//        openHourService.getNode().addDependency(databaseStack.getOpenHourDb());
-//        openHourService.getNode().addDependency(snsAndSQSStack.getSlotStatusUpdateTopic());
+
+        openHourServiceStack.getNode().addDependency(securityGroupStack);
+        openHourServiceStack.getNode().addDependency(openHourDbStack);
 
         ServiceStack emailTokenServiceStack = new ServiceStack(
                 this,
@@ -127,13 +134,13 @@ public class AppStage extends Stage {
                 stackProps,
                 ecsCluster,
                 List.of(emailTokenServiceInfo.getServicePort()),
-                emailTokenDB.getDb(),
+                emailTokenDbStack.getDb(),
                 emailTokenServiceInfo,
                 null
         );
-//        FargateService emailTokenService = emailTokenServiceStack.getService();
-//        emailTokenService.getNode().addDependency(databaseStack.getEmailTokenDbHealthCheck());
-//        emailTokenService.getNode().addDependency(databaseStack.getEmailTokenDb());
+
+        emailTokenServiceStack.getNode().addDependency(securityGroupStack);
+        emailTokenServiceStack.getNode().addDependency(emailTokenDbStack);
 
         ServiceStack notificationServiceStack = new ServiceStack(
                 this,
@@ -151,5 +158,7 @@ public class AppStage extends Stage {
                         "SPRING_CLOUD_AWS_SQS_QUEUE_SLOT-STATUS-UPDATE", snsAndSQSStack.getSlotStatusUpdateQueue().getQueueName()
                 )
         );
+
+        notificationServiceStack.getNode().addDependency(securityGroupStack);
    }
 }

@@ -44,6 +44,6 @@ public class PipelineStack extends Stack {
 
         StageProps stageProps = StageProps.builder().env(props.getEnv()).build();
 
-        pipeline.addStage(new AppStage(this, "DeploySlotifyApp", stageProps));
+        pipeline.addStage(new ProdStage(this, "Prod", stageProps));
     }
 }
