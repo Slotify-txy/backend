@@ -1,5 +1,6 @@
 package org.slotify.infrastructure;
 
+import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.StageProps;
@@ -23,12 +24,21 @@ public class PipelineStack extends Stack {
                         .build()
         );
 
+        SecretValue dockerUsername = SecretValue.secretsManager("docker-username");
+        SecretValue dockerPassword = SecretValue.secretsManager("docker-password");
+
         CodePipeline pipeline = CodePipeline.Builder.create(this, "SlotifyPipeline")
                 .pipelineName("SlotifyPipeline")
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
-                        .commands(Arrays.asList("npm install -g aws-cdk", "cd infrastructure", "mvn clean install", "cdk synth"))
+                        .commands(Arrays.asList(
+                                "npm install -g aws-cdk",
+                                "docker login -u " + dockerUsername + " -p " + dockerPassword,
+                                "cd infrastructure",
+                                "mvn clean install",
+                                "cdk synth"
+                        ))
                         .primaryOutputDirectory("infrastructure/cdk.out")
                         .build())
                 .build();
