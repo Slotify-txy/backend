@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: user-service
+
+server:
+  port: 8081
+
+grpc:
+  server:
+    port: 9001
+
+
+cognito:
+  client_id:
+    student: 2rsfhp758ram6982e0hsbnf2p5
+    coach: 2b26ie8mlg1tvl763g4ehv1jtj
+
+logging:
+  level:
+    root=INFO:

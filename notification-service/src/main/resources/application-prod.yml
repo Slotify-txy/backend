@@ -1,0 +1,5 @@
+backend_url: https://api.slotify-backend.com/
+
+frontend_url:
+  student: https://slotify-student.com
+  coach: https://slotify-coach.com

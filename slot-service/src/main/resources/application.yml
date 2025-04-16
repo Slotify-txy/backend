@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: slot-service
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      sns:
+        topic:
+          arn: arn:aws:sns:us-east-1:697816050693:SlotUpdate
+
+server:
+  port: 8080
+
+grpc:
+  server:
+    port: 9002
+
+client_id:
+  student: 2rsfhp758ram6982e0hsbnf2p5
+  coach: 2b26ie8mlg1tvl763g4ehv1jtj
+
+logging:
+  level:
+    root=INFO:
+

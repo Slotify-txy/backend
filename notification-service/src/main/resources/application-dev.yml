@@ -1,0 +1,10 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9094
+
+email_token:
+  service:
+    address: localhost
+    grpc:
+      port: 9003
+

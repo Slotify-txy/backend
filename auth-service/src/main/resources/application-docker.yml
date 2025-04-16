@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: auth-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_olOSsIKkf
+
+
+server:
+  port: 8082
+
+frontend_url:
+  student: http://localhost:3000/
+  coach: http://localhost:3001/
+
+cognito:
+  client_id:
+    student: 2rsfhp758ram6982e0hsbnf2p5
+    coach: 2b26ie8mlg1tvl763g4ehv1jtj
+
+logging:
+  level:
+    root=INFO:

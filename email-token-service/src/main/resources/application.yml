@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: email-token-service
+
+server:
+  port: 8086
+
+grpc:
+  server:
+    port: 9003
+
+logging:
+  level:
+    root=INFO:

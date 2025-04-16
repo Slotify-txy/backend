@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: notification-service
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      ses:
+        from: slotify.txy@gmail.com
+      sqs:
+        queue:
+          open-hour-update: OpenHourUpdateQueue
+          slot-status-update: SlotStatusUpdate
+
+frontend_url:
+  student: http://localhost:3000/
+  coach: http://localhost:3001/
+
+backend_url: http://localhost:8084/
+
+server:
+  port: 8085

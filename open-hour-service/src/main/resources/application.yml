@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: open-hour-service
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      sns:
+        topic:
+          arn: arn:aws:sns:us-east-1:697816050693:OpenHourUpdate
+
+
+server:
+  port: 8083
+
+logging:
+  level:
+    root=INFO:
+

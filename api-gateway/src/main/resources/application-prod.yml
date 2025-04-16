@@ -1,0 +1,58 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service-route
+          uri: http://auth-service.slotify.local:8082
+          predicates:
+            - Path=/api/*/auth/**
+
+        - id: slot-service-token-route
+          order: 0
+          uri: http://slot-service.slotify.local:8080
+          predicates:
+            - Path=/api/*/slot/*/token/**
+
+        - id: slot-service-route
+          order: 1
+          uri: http://slot-service.slotify.local:8080
+          predicates:
+            - Path=/api/*/slot/**
+          filters:
+            - JwtValidation
+
+        - id: open-hour-service-route
+          uri: http://open-hour-service.slotify.local:8083
+          predicates:
+            - Path=/api/*/open-hour/**
+          filters:
+            - JwtValidation
+
+        - id: user-service-route-student
+          uri: http://user-service.slotify.local:8081
+          predicates:
+            - Path=/api/*/student/**
+          filters:
+            - JwtValidation
+
+        - id: user-service-route-coach
+          uri: http://user-service.slotify.local:8081
+          predicates:
+            - Path=/api/*/coach/**
+          filters:
+            - JwtValidation
+
+#        # Route for /api/docs/patients to patient-service /v3/api-docs
+#        - id: api-docs-patient-route
+#          uri: http://patient-service:4000
+#          predicates:
+#            - Path=/api-docs/patients
+#          filters:
+#            - RewritePath=/api-docs/patients,/v3/api-docs
+#
+#        - id: api-docs-auth-route
+#          uri: http://auth-service:4005
+#          predicates:
+#            - Path=/api-docs/auth
+#          filters:
+#            - RewritePath=/api-docs/auth,/v3/api-docs

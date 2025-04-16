@@ -1,0 +1,5 @@
+user-service:
+  address: localhost
+  grpc:
+    port: 9001
+
