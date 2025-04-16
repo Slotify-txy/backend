@@ -11,6 +11,7 @@ import software.amazon.awscdk.pipelines.ShellStep;
 import software.constructs.Construct;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class PipelineStack extends Stack {
     public PipelineStack(final Construct scope, final String id, final StackProps props) {
@@ -32,9 +33,13 @@ public class PipelineStack extends Stack {
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
+                        .env(Map.of(
+                                "DOCKER_HUB_USERNAME", dockerUsername.toString(),
+                                "DOCKER_HUB_PASSWORD", dockerPassword.toString())
+                        )
                         .commands(Arrays.asList(
                                 "npm install -g aws-cdk",
-                                "docker login -u " + dockerUsername + " -p " + dockerPassword,
+                                "docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD",
                                 "cd infrastructure",
                                 "mvn clean install",
                                 "cdk synth"
