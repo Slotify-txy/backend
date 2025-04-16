@@ -33,6 +33,8 @@ public class AppStage extends Stage {
 
         SNSAndSQSStack snsAndSQSStack = new SNSAndSQSStack(this, "sns-and-sqs-stack", stackProps);
 
+        new SecurityGroupStack(this, "security-group-stack", stackProps, vpc, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
+
         DatabaseStack useDB = new DatabaseStack(this, "slotify-" + userServiceInfo.getDbName(), stackProps, vpc, userServiceInfo.getDbName());
         DatabaseStack slotDB = new DatabaseStack(this, "slotify-" + slotServiceInfo.getDbName(), stackProps, vpc, slotServiceInfo.getDbName());
         DatabaseStack openHourDB = new DatabaseStack(this, "slotify-" + openHourServiceInfo.getDbName(), stackProps, vpc, openHourServiceInfo.getDbName());
@@ -40,7 +42,6 @@ public class AppStage extends Stage {
 
         ApiGatewayServiceStack apiGatewayServiceStack = new ApiGatewayServiceStack(
                 this,
-                vpc,
                 "slotify-api-gateway-service",
                 stackProps,
                 ecsCluster,
@@ -53,7 +54,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-auth-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(authServiceInfo.getServicePort()),
                 null,
@@ -68,7 +68,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-user-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(userServiceInfo.getServicePort(), userServiceInfo.getGRPCPort()),
                 useDB.getDb(),
@@ -86,7 +85,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-slot-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(slotServiceInfo.getServicePort(), slotServiceInfo.getGRPCPort()),
                 slotDB.getDb(),
@@ -108,7 +106,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-open-hour-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(openHourServiceInfo.getServicePort()),
                 openHourDB.getDb(),
@@ -128,7 +125,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-email-token-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(emailTokenServiceInfo.getServicePort()),
                 emailTokenDB.getDb(),
@@ -143,7 +139,6 @@ public class AppStage extends Stage {
                 this,
                 "slotify-notification-service",
                 stackProps,
-                vpc,
                 ecsCluster,
                 List.of(notificationServiceInfo.getServicePort()),
                 null,
@@ -156,7 +151,5 @@ public class AppStage extends Stage {
                         "SPRING_CLOUD_AWS_SQS_QUEUE_SLOT-STATUS-UPDATE", snsAndSQSStack.getSlotStatusUpdateQueue().getQueueName()
                 )
         );
-
-        new SecurityGroupStack(this, "security-group-stack", stackProps, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
    }
 }

@@ -5,8 +5,8 @@ import lombok.EqualsAndHashCode;
 import software.amazon.awscdk.*;
 import software.amazon.awscdk.services.certificatemanager.Certificate;
 import software.amazon.awscdk.services.certificatemanager.CertificateValidation;
+import software.amazon.awscdk.services.ec2.ISecurityGroup;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
-import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.ecs.*;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
 import software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck;
@@ -23,10 +23,9 @@ import java.util.stream.Stream;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ApiGatewayServiceStack extends Stack {
-    private final SecurityGroup serviceSG;
+
     public ApiGatewayServiceStack(
             final Construct scope,
-            final Vpc vpc,
             final String id,
             final StackProps props,
             final Cluster ecsCluster,
@@ -35,12 +34,13 @@ public class ApiGatewayServiceStack extends Stack {
             final String authServiceUrl
     ) {
         super(scope, id, props);
-        this.serviceSG = createSG(vpc, serviceInfo.getServiceName());
 
-        CfnOutput.Builder.create(this, serviceInfo.getServiceName() + "-sg-export")
-                .value(serviceSG.getSecurityGroupId())
-                .exportName(serviceInfo.getServiceName() + "-sg-id")
-                .build();
+        String serviceName = serviceInfo.getServiceName();
+        ISecurityGroup serviceSG = SecurityGroup.fromSecurityGroupId(
+                this,
+                "imported-" + serviceName + "-sg",
+                Fn.importValue(serviceName + "-sg-id")
+        );
 
         FargateTaskDefinition taskDefinition =
                 FargateTaskDefinition.Builder.create(this, "APIGatewayTaskDefinition")
@@ -109,14 +109,6 @@ public class ApiGatewayServiceStack extends Stack {
                 .zone(hostedZone)
                 .recordName("api") // This creates: api.slotify-backend.com
                 .target(RecordTarget.fromAlias(new LoadBalancerTarget(apiGateway.getLoadBalancer())))
-                .build();
-    }
-
-    private SecurityGroup createSG(Vpc vpc, String name) {
-        return SecurityGroup.Builder.create(this,"slotify_" + name + "_SG")
-                .vpc(vpc)
-                .description("Security group for " + name)
-                .allowAllOutbound(true)
                 .build();
     }
 }

@@ -17,7 +17,6 @@ import java.util.Map;
 public class DatabaseStack extends Stack {
     private final DatabaseInstance db;
     private final CfnHealthCheck healthCheck;
-    private final SecurityGroup dbSG;
 
     public DatabaseStack(
             final Construct scope,
@@ -27,19 +26,19 @@ public class DatabaseStack extends Stack {
             final String dbName
     ) {
         super(scope, id, props);
-        this.dbSG = createSG(vpc, dbName);
 
-        CfnOutput.Builder.create(this, dbName + "-sg-export")
-                .value(dbSG.getSecurityGroupId())
-                .exportName(dbName + "-sg-id")
-                .build();
+        ISecurityGroup dbSG = SecurityGroup.fromSecurityGroupId(
+                this,
+                "imported-" + dbName + "-sg",
+                Fn.importValue(dbName + "-sg-id")
+        );
 
         this.db = createDatabase(vpc, dbName, dbName, dbSG);
         this.healthCheck =
                 createDbHealthCheck(db, dbName + "HealthCheck");
     }
 
-    private DatabaseInstance createDatabase(Vpc vpc, String id, String dbName, SecurityGroup sg) {
+    private DatabaseInstance createDatabase(Vpc vpc, String id, String dbName, ISecurityGroup sg) {
         return DatabaseInstance.Builder
                 .create(this, id)
                 .engine(DatabaseInstanceEngine.mysql(
@@ -75,14 +74,6 @@ public class DatabaseStack extends Stack {
                         .requestInterval(30)
                         .failureThreshold(3)
                         .build())
-                .build();
-    }
-
-    private SecurityGroup createSG(Vpc vpc, String name) {
-        return SecurityGroup.Builder.create(this,"slotify_" + name + "_SG")
-                .vpc(vpc)
-                .description("Security group for " + name)
-                .allowAllOutbound(true)
                 .build();
     }
 }
