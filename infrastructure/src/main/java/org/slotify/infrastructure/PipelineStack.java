@@ -1,17 +1,14 @@
 package org.slotify.infrastructure;
 
-import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.StageProps;
-import software.amazon.awscdk.pipelines.CodePipeline;
-import software.amazon.awscdk.pipelines.CodePipelineSource;
-import software.amazon.awscdk.pipelines.ConnectionSourceOptions;
-import software.amazon.awscdk.pipelines.ShellStep;
+import software.amazon.awscdk.pipelines.*;
+import software.amazon.awscdk.services.secretsmanager.Secret;
 import software.constructs.Construct;
 
 import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
 
 public class PipelineStack extends Stack {
     public PipelineStack(final Construct scope, final String id, final StackProps props) {
@@ -25,27 +22,24 @@ public class PipelineStack extends Stack {
                         .build()
         );
 
-        SecretValue dockerUsername = SecretValue.secretsManager("docker-username");
-        SecretValue dockerPassword = SecretValue.secretsManager("docker-password");
-
         CodePipeline pipeline = CodePipeline.Builder.create(this, "SlotifyPipeline")
                 .pipelineName("SlotifyPipeline")
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
-                        .env(Map.of(
-                                "DOCKER_HUB_USERNAME", dockerUsername.toString(),
-                                "DOCKER_HUB_PASSWORD", dockerPassword.toString())
-                        )
                         .commands(Arrays.asList(
                                 "npm install -g aws-cdk",
-                                "docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD",
                                 "cd infrastructure",
                                 "mvn clean install",
                                 "cdk synth"
                         ))
                         .primaryOutputDirectory("infrastructure/cdk.out")
                         .build())
+                .dockerCredentials(List.of(
+                        DockerCredential.dockerHub(
+                                Secret.fromSecretNameV2(this, "DockerHubSecret", "docker")
+                        )
+                ))
                 .build();
 
         StageProps stageProps = StageProps.builder().env(props.getEnv()).build();
