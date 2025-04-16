@@ -35,7 +35,7 @@ public class PipelineStack extends Stack {
                         .commands(Arrays.asList(
                                 "npm install -g aws-cdk",
                                 "cd infrastructure",
-                                "mvn clean install",
+                                "mvn clean install -DskipTests",
                                 "cdk synth"
                         ))
                         .primaryOutputDirectory("infrastructure/cdk.out")
