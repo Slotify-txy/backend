@@ -24,6 +24,11 @@ public class PipelineStack extends Stack {
 
         CodePipeline pipeline = CodePipeline.Builder.create(this, "SlotifyPipeline")
                 .pipelineName("SlotifyPipeline")
+                .dockerCredentials(List.of(
+                        DockerCredential.dockerHub(
+                                Secret.fromSecretCompleteArn(this, "DockerHubSecret", "arn:aws:secretsmanager:us-east-1:697816050693:secret:docker-7Ibngx")
+                        )
+                ))
                 .synth(ShellStep.Builder
                         .create("Synth")
                         .input(source)
@@ -35,11 +40,6 @@ public class PipelineStack extends Stack {
                         ))
                         .primaryOutputDirectory("infrastructure/cdk.out")
                         .build())
-                .dockerCredentials(List.of(
-                        DockerCredential.dockerHub(
-                                Secret.fromSecretNameV2(this, "DockerHubSecret", "docker")
-                        )
-                ))
                 .build();
 
         StageProps stageProps = StageProps.builder().env(props.getEnv()).build();
