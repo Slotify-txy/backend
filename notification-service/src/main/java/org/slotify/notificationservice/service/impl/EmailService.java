@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slotify.notificationservice.grpc.EmailTokenServiceGrpcClient;
 import org.slotify.notificationservice.util.TimestampConvertor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,7 +46,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -120,7 +122,15 @@ public class EmailService {
                 .rawMessage(rawMessage)
                 .build();
 
-        sesAsyncClient.sendRawEmail(rawEmailRequest);
+        sesAsyncClient.sendRawEmail(rawEmailRequest)
+            .whenComplete((response, error) -> {
+                if (error != null) {
+                    log.error("Failed to send email: {}", error.getMessage());
+                } else {
+                    String messageId = response.messageId();
+                    log.info("Email accepted by SES, messageId: {}", messageId);
+                }
+            });
     }
 
     public void sendOpenHourUpdateEmail(Coach coach) throws MessagingException, IOException {
