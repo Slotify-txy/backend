@@ -5,6 +5,8 @@ import software.amazon.awscdk.Stage;
 import software.amazon.awscdk.StageProps;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.ecs.Cluster;
+import software.amazon.awscdk.services.iam.IRole;
+import software.amazon.awscdk.services.iam.ManagedPolicy;
 import software.constructs.Construct;
 
 import java.util.List;
@@ -110,6 +112,11 @@ public class ProdStage extends Stage {
         slotServiceStack.getNode().addDependency(securityGroupStack);
         slotServiceStack.getNode().addDependency(slotDbStack);
 
+        IRole slotServiceTaskRole = slotServiceStack.getService().getTaskDefinition().getTaskRole();
+        slotServiceTaskRole.addManagedPolicy(
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
+        );
+
         ServiceStack openHourServiceStack = new ServiceStack(
                 this,
                 "slotify-open-hour-service",
@@ -127,6 +134,11 @@ public class ProdStage extends Stage {
 
         openHourServiceStack.getNode().addDependency(securityGroupStack);
         openHourServiceStack.getNode().addDependency(openHourDbStack);
+
+        IRole openHourServiceTaskRole = openHourServiceStack.getService().getTaskDefinition().getTaskRole();
+        openHourServiceTaskRole.addManagedPolicy(
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
+        );
 
         ServiceStack emailTokenServiceStack = new ServiceStack(
                 this,
@@ -158,7 +170,11 @@ public class ProdStage extends Stage {
                         "SPRING_CLOUD_AWS_SQS_QUEUE_SLOT-STATUS-UPDATE", snsAndSQSStack.getSlotStatusUpdateQueue().getQueueName()
                 )
         );
-
         notificationServiceStack.getNode().addDependency(securityGroupStack);
-   }
+
+        IRole notificationServiceTaskRole = notificationServiceStack.getService().getTaskDefinition().getTaskRole();
+        notificationServiceTaskRole.addManagedPolicy(
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSNSFullAccess")
+        );
+    }
 }
