@@ -114,7 +114,7 @@ public class ProdStage extends Stage {
 
         IRole slotServiceTaskRole = slotServiceStack.getService().getTaskDefinition().getTaskRole();
         slotServiceTaskRole.addManagedPolicy(
-                ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSNSFullAccess")
         );
 
         ServiceStack openHourServiceStack = new ServiceStack(
@@ -137,7 +137,7 @@ public class ProdStage extends Stage {
 
         IRole openHourServiceTaskRole = openHourServiceStack.getService().getTaskDefinition().getTaskRole();
         openHourServiceTaskRole.addManagedPolicy(
-                ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSNSFullAccess")
         );
 
         ServiceStack emailTokenServiceStack = new ServiceStack(
@@ -174,7 +174,7 @@ public class ProdStage extends Stage {
 
         IRole notificationServiceTaskRole = notificationServiceStack.getService().getTaskDefinition().getTaskRole();
         notificationServiceTaskRole.addManagedPolicy(
-                ManagedPolicy.fromAwsManagedPolicyName("AmazonSNSFullAccess")
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
         );
     }
 }
