@@ -18,7 +18,7 @@ public class PipelineStack extends Stack {
                 "Slotify-txy/backend",
                 "master",
                 ConnectionSourceOptions.builder()
-                        .connectionArn("arn:aws:codeconnections:us-east-1:697816050693:connection/5173abe2-3be8-4fe9-809c-0ae4e3656028")
+                        .connectionArn("arn:aws:codeconnections:us-east-1:697816050693:connection/29814782-c70b-4fd3-9a66-0527ba9a2a48")
                         .build()
         );
 
