@@ -27,20 +27,20 @@ public class ProdStage extends Stage {
                 .env(props.getEnv())
                 .build();
 
-        NetworkStack networkStack = new NetworkStack(this, "network-stack", stackProps);
+        NetworkStack networkStack = new NetworkStack(this, "network", stackProps);
         Vpc vpc = networkStack.getVpc();
 
-        ClusterStack clusterStack = new ClusterStack(this, "cluster-stack", stackProps, vpc);
+        ClusterStack clusterStack = new ClusterStack(this, "cluster", stackProps, vpc);
         Cluster ecsCluster = clusterStack.getEcsCluster();
 
-        SNSAndSQSStack snsAndSQSStack = new SNSAndSQSStack(this, "sns-and-sqs-stack", stackProps);
+        SNSAndSQSStack snsAndSQSStack = new SNSAndSQSStack(this, "sns-and-sqs", stackProps);
 
-        SecurityGroupStack securityGroupStack = new SecurityGroupStack(this, "security-group-stack", stackProps, vpc, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
+        SecurityGroupStack securityGroupStack = new SecurityGroupStack(this, "security-group", stackProps, vpc, apiGatewayServiceInfo, authServiceInfo, userServiceInfo, slotServiceInfo, openHourServiceInfo, emailTokenServiceInfo, notificationServiceInfo);
 
-        DatabaseStack userDbStack = new DatabaseStack(this, "slotify-" + userServiceInfo.getDbName() + "-stack", stackProps, vpc, userServiceInfo.getDbName());
-        DatabaseStack slotDbStack = new DatabaseStack(this, "slotify-" + slotServiceInfo.getDbName() + "-stack", stackProps, vpc, slotServiceInfo.getDbName());
-        DatabaseStack openHourDbStack = new DatabaseStack(this, "slotify-" + openHourServiceInfo.getDbName() + "-stack", stackProps, vpc, openHourServiceInfo.getDbName());
-        DatabaseStack emailTokenDbStack = new DatabaseStack(this, "slotify-" + emailTokenServiceInfo.getDbName() + "-stack", stackProps, vpc, emailTokenServiceInfo.getDbName());
+        DatabaseStack userDbStack = new DatabaseStack(this, "slotify-" + userServiceInfo.getDbName(), stackProps, vpc, userServiceInfo.getDbName());
+        DatabaseStack slotDbStack = new DatabaseStack(this, "slotify-" + slotServiceInfo.getDbName(), stackProps, vpc, slotServiceInfo.getDbName());
+        DatabaseStack openHourDbStack = new DatabaseStack(this, "slotify-" + openHourServiceInfo.getDbName(), stackProps, vpc, openHourServiceInfo.getDbName());
+        DatabaseStack emailTokenDbStack = new DatabaseStack(this, "slotify-" + emailTokenServiceInfo.getDbName(), stackProps, vpc, emailTokenServiceInfo.getDbName());
 
         userDbStack.getNode().addDependency(securityGroupStack);
         slotDbStack.getNode().addDependency(securityGroupStack);
