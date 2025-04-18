@@ -176,5 +176,8 @@ public class ProdStage extends Stage {
         notificationServiceTaskRole.addManagedPolicy(
                 ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
         );
+        notificationServiceTaskRole.addManagedPolicy(
+                ManagedPolicy.fromAwsManagedPolicyName("AmazonSESFullAccess")
+        );
     }
 }
