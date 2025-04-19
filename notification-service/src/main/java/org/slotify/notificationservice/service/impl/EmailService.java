@@ -138,7 +138,7 @@ public class EmailService {
         for (Student student : students) {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            String studentName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
+            String studentName = WordUtils.capitalizeFully(student.getName().split(" ")[0].toLowerCase());
             String coachName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
             helper.setFrom(new InternetAddress(senderEmail, "Slotify"));
             helper.setTo(student.getEmail());
@@ -179,7 +179,7 @@ public class EmailService {
         Coach coach = slot.getCoach();
 
         String token = emailTokenServiceGrpcClient.generateToken(slot.getId(), slot.getStartAt());
-        String studentName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
+        String studentName = WordUtils.capitalizeFully(student.getName().split(" ")[0].toLowerCase());
         String coachName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
@@ -213,7 +213,7 @@ public class EmailService {
         String token = emailTokenServiceGrpcClient.generateToken(slot.getId(), slot.getStartAt());
         Student student = slot.getStudent();
         Coach coach = slot.getCoach();
-        String studentName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
+        String studentName = WordUtils.capitalizeFully(student.getName().split(" ")[0].toLowerCase());
         String coachName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
@@ -283,7 +283,7 @@ public class EmailService {
     private void sendRejectedEmail(Slot slot) throws MessagingException, IOException {
         Student student = slot.getStudent();
         Coach coach = slot.getCoach();
-        String studentName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
+        String studentName = WordUtils.capitalizeFully(student.getName().split(" ")[0].toLowerCase());
         String coachName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
@@ -340,7 +340,7 @@ public class EmailService {
     private void sendCancelledEmail(Slot slot) throws MessagingException, IOException {
         Student student = slot.getStudent();
         Coach coach = slot.getCoach();
-        String studentName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
+        String studentName = WordUtils.capitalizeFully(student.getName().split(" ")[0].toLowerCase());
         String coachName = WordUtils.capitalizeFully(coach.getName().split(" ")[0].toLowerCase());
 
         LocalDateTime startAt = TimestampConvertor.convertFromProtoTimestampToLocalDateTime(slot.getStartAt());
