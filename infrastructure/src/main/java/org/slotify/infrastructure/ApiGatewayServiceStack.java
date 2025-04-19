@@ -92,7 +92,7 @@ public class ApiGatewayServiceStack extends Stack {
                         .serviceName("api-gateway")
                         .taskDefinition(taskDefinition)
                         .desiredCount(1)
-                        .healthCheckGracePeriod(Duration.seconds(60))
+                        .healthCheckGracePeriod(Duration.seconds(120))
                         .securityGroups(List.of(serviceSG))
                         .listenerPort(443)
                         .certificate(certificate)
