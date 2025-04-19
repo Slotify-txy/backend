@@ -92,7 +92,6 @@ public class ApiGatewayServiceStack extends Stack {
                         .serviceName("api-gateway")
                         .taskDefinition(taskDefinition)
                         .desiredCount(1)
-                        .healthCheckGracePeriod(Duration.seconds(120))
                         .securityGroups(List.of(serviceSG))
                         .listenerPort(443)
                         .certificate(certificate)
@@ -101,6 +100,10 @@ public class ApiGatewayServiceStack extends Stack {
         apiGateway.getTargetGroup().configureHealthCheck(HealthCheck.builder()
                 .path("/actuator/health")
                 .port("8084")
+                .interval(Duration.seconds(30))
+                .timeout(Duration.seconds(5))
+                .healthyThresholdCount(2)
+                .unhealthyThresholdCount(5)
                 .healthyHttpCodes("200")
                 .build());
 
