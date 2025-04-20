@@ -93,7 +93,6 @@ public class ApiGatewayServiceStack extends Stack {
                         .taskDefinition(taskDefinition)
                         .desiredCount(1)
                         .securityGroups(List.of(serviceSG))
-                        .healthCheckGracePeriod(Duration.seconds(300))
                         .minHealthyPercent(100)
                         .listenerPort(443)
                         .certificate(certificate)
@@ -107,6 +106,11 @@ public class ApiGatewayServiceStack extends Stack {
                 .unhealthyThresholdCount(5)
                 .healthyHttpCodes("200")
                 .build());
+
+        apiGateway.getTargetGroup().setAttribute(
+                "deregistration_delay.timeout_seconds",
+                "30"
+        );
 
         // Create an A record in Route 53 (alias) for api.slotify-backend.com pointing to the ALB.
         ARecord.Builder.create(this, "ApiAliasRecord")
