@@ -113,5 +113,6 @@ public class ApiGatewayServiceStack extends Stack {
                 .recordName("api") // This creates: api.slotify-backend.com
                 .target(RecordTarget.fromAlias(new LoadBalancerTarget(apiGateway.getLoadBalancer())))
                 .build();
+
     }
 }
