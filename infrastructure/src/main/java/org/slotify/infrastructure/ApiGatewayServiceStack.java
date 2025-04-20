@@ -93,6 +93,7 @@ public class ApiGatewayServiceStack extends Stack {
                         .taskDefinition(taskDefinition)
                         .desiredCount(1)
                         .securityGroups(List.of(serviceSG))
+                        .healthCheckGracePeriod(Duration.seconds(300))
                         .minHealthyPercent(100)
                         .listenerPort(443)
                         .certificate(certificate)
