@@ -2,10 +2,7 @@ package org.slotify.infrastructure;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import software.amazon.awscdk.Fn;
-import software.amazon.awscdk.RemovalPolicy;
-import software.amazon.awscdk.Stack;
-import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.*;
 import software.amazon.awscdk.services.certificatemanager.Certificate;
 import software.amazon.awscdk.services.certificatemanager.CertificateValidation;
 import software.amazon.awscdk.services.ec2.ISecurityGroup;
@@ -96,6 +93,7 @@ public class ApiGatewayServiceStack extends Stack {
                         .taskDefinition(taskDefinition)
                         .desiredCount(1)
                         .securityGroups(List.of(serviceSG))
+                        .healthCheckGracePeriod(Duration.seconds(300))
                         .minHealthyPercent(100)
                         .listenerPort(443)
                         .certificate(certificate)
@@ -104,6 +102,9 @@ public class ApiGatewayServiceStack extends Stack {
         apiGateway.getTargetGroup().configureHealthCheck(HealthCheck.builder()
                 .path("/actuator/health")
                 .port("8084")
+                .interval(Duration.seconds(30))
+                .timeout(Duration.seconds(10))
+                .unhealthyThresholdCount(5)
                 .healthyHttpCodes("200")
                 .build());
 
