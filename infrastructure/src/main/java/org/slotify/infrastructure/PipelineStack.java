@@ -1,6 +1,5 @@
 package org.slotify.infrastructure;
 
-import org.slotify.infrastructure.stage.*;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.StageProps;
@@ -45,13 +44,6 @@ public class PipelineStack extends Stack {
 
         StageProps stageProps = StageProps.builder().env(props.getEnv()).build();
 
-        pipeline.addStage(new InfraStage(this, "infra", stageProps));
-        pipeline.addStage(new ApiGatewayServiceStage(this, "api-gateway-service", stageProps));
-        pipeline.addStage(new AuthServiceStage(this, "auth-service", stageProps));
-        pipeline.addStage(new UserServiceStage(this, "user-service", stageProps));
-        pipeline.addStage(new SlotServiceStage(this, "slot-service", stageProps));
-        pipeline.addStage(new OpenHourServiceStage(this, "open-hour-service", stageProps));
-        pipeline.addStage(new EmailTokenServiceStage(this, "email-token-service", stageProps));
-        pipeline.addStage(new NotificationServiceStage(this, "notification-service", stageProps));
+        pipeline.addStage(new ProdStage(this, "Prod", stageProps));
     }
 }

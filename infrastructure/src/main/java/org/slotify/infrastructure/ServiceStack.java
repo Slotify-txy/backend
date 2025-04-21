@@ -55,7 +55,7 @@ public class ServiceStack extends Stack {
         );
     }
 
-    private FargateService createFargateService(
+    FargateService createFargateService(
             Cluster ecsCluster,
             String imageName,
             List<Integer> ports,
