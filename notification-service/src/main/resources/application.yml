@@ -5,18 +5,34 @@ spring:
     aws:
       region:
         static: us-east-1
-      ses:
-        from: slotify.txy@gmail.com
       sqs:
         queue:
           open-hour-update: OpenHourUpdateQueue
           slot-status-update: SlotStatusUpdate
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: slotify.txy@gmail.com
+    password: appzyliahuxzrrpp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 frontend_url:
   student: http://localhost:3000/
   coach: http://localhost:3001/
 
 backend_url: http://localhost:8084/
+
+
 
 server:
   port: 8085
