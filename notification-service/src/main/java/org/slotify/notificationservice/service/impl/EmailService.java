@@ -51,7 +51,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Service
 public class EmailService {
-    @Value("${spring.cloud.aws.ses.from}")
+    @Value("${spring.mail.username}")
     private String senderEmail;
 
     @Value("${frontend_url.student}")
