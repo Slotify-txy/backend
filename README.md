@@ -26,6 +26,9 @@ Other repos:
 * ![Redux][Redux]
 * ![AWS][AWS]
 
+## Known Issues
+Having a hard time gaining production assess for AWS SES, so only verified email accounts can receive emails. Considering going back to Gmail SMTP.
+
 ## Contact
 
 Xiyuan Tu - [LinkedIn](https://www.linkedin.com/in/xiyuan) - xiyuan.tyler@gmail.com
@@ -37,3 +40,4 @@ Looking for new-grad sde positions (backend/full-stack/cloud/iOS)
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [Redux]: https://img.shields.io/badge/Redux-%23764ABC?style=for-the-badge&logo=redux&logoColor=white
 [AWS]: https://img.shields.io/badge/AWS-131f2d?style=for-the-badge&logo=amazonwebservices&logoColor=white
+
