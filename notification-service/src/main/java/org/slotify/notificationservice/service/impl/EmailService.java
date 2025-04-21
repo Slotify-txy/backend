@@ -30,14 +30,11 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import slot.Slot;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.ses.SesAsyncClient;
-import software.amazon.awssdk.services.ses.model.RawMessage;
-import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import user.Coach;
 import user.Student;
 
@@ -67,7 +64,6 @@ public class EmailService {
     private String backendUrl;
 
     private String backendApiPrefix;
-    private final SesAsyncClient sesAsyncClient;
     private final TemplateEngine templateEngine;
     private final DateTimeFormatter startFormatterWithMin = DateTimeFormatter.ofPattern("E MMM d, yyyy h:mm a", Locale.ENGLISH);
     private final DateTimeFormatter startFormatter = DateTimeFormatter.ofPattern("E MMM d, yyyy h a", Locale.ENGLISH);
@@ -109,30 +105,7 @@ public class EmailService {
         }
     }
 
-    private void sendEmail(MimeMessage message) throws MessagingException, IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        message.writeTo(outputStream);
-        byte[] rawMessageBytes = outputStream.toByteArray();
-
-        RawMessage rawMessage = RawMessage.builder()
-                .data(SdkBytes.fromByteArray(rawMessageBytes))
-                .build();
-
-        SendRawEmailRequest rawEmailRequest = SendRawEmailRequest.builder()
-                .rawMessage(rawMessage)
-                .build();
-
-        sesAsyncClient.sendRawEmail(rawEmailRequest)
-            .whenComplete((response, error) -> {
-                if (error != null) {
-                    log.error("Failed to send email: {}", error.getMessage());
-                } else {
-                    String messageId = response.messageId();
-                    log.info("Email accepted by SES, messageId: {}", messageId);
-                }
-            });
-    }
-
+    @Async
     public void sendOpenHourUpdateEmail(Coach coach) throws MessagingException, IOException {
         List<Student> students = coach.getStudentsList();
         for (Student student : students) {
@@ -155,12 +128,13 @@ public class EmailService {
 
             helper.setText(emailContent, true);
 
-            sendEmail(message);
+            mailSender.send(message);
             log.info("Open hour update email sent to student: {}", studentName);
         }
 
     }
 
+    @Async
     public void sendSlotStatusUpdateEmail(Slot slot) throws MessagingException, IOException {
         switch (slot.getStatus()) {
             case PENDING -> sendConfirmationEmail(slot);
@@ -205,7 +179,7 @@ public class EmailService {
 
         helper.setText(emailContent, true);
 
-        sendEmail(message);
+        mailSender.send(message);
         log.info("Confirmation email sent to student: {}", studentName);
     }
 
@@ -247,7 +221,7 @@ public class EmailService {
         ByteArrayResource resourceForStudent = new ByteArrayResource(icsBytesForStudent);
         studentMessageHelper.addAttachment("invite.ics", resourceForStudent);
 
-        sendEmail(studentMessage);
+        mailSender.send(studentMessage);
         log.info("Appointment email sent to student: {}", studentName);
 
         // email to coach
@@ -275,10 +249,9 @@ public class EmailService {
         ByteArrayResource resourceForCoach = new ByteArrayResource(icsBytesForCoach);
         coachMessageHelper.addAttachment("invite.ics", resourceForCoach);
 
-        sendEmail(coachMessage);
+        mailSender.send(coachMessage);
         log.info("Appointment email sent to coach: {}", coachName);
     }
-
 
     private void sendRejectedEmail(Slot slot) throws MessagingException, IOException {
         Student student = slot.getStudent();
@@ -311,7 +284,7 @@ public class EmailService {
 
         studentMessageHelper.setText(studentEmailContent, true);
 
-        sendEmail(studentMessage);
+        mailSender.send(studentMessage);
         log.info("Rejection email sent to student: {}", studentName);
 
         // email to coach
@@ -333,7 +306,7 @@ public class EmailService {
 
         coachMessageHelper.setText(coachEmailContent, true);
 
-        sendEmail(coachMessage);
+        mailSender.send(coachMessage);
         log.info("Rejection email sent to coach: {}", coachName);
     }
 
@@ -367,7 +340,7 @@ public class EmailService {
 
         studentMessageHelper.setText(studentEmailContent, true);
 
-        sendEmail(studentMessage);
+        mailSender.send(studentMessage);
         log.info("Cancellation email sent to student: {}", studentName);
 
         // email to coach
@@ -389,7 +362,7 @@ public class EmailService {
 
         coachMessageHelper.setText(coachEmailContent, true);
 
-        sendEmail(coachMessage);
+        mailSender.send(coachMessage);
         log.info("Cancellation email sent to coach: {}", coachName);
     }
 
