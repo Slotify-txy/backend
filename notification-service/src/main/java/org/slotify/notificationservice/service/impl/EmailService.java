@@ -28,7 +28,6 @@ import org.slotify.notificationservice.util.TimestampConvertor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -70,7 +69,7 @@ public class EmailService {
     private final DateTimeFormatter endFormatterWithMin = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH); // start time and end time must be in the same day
     private final DateTimeFormatter endFormatter = DateTimeFormatter.ofPattern("h a", Locale.ENGLISH); // start time and end time must be in the same day
     private final EmailTokenServiceGrpcClient emailTokenServiceGrpcClient;
-    private final JavaMailSender mailSender = new JavaMailSenderImpl();
+    private final JavaMailSender mailSender;
     private static final Logger log = LoggerFactory.getLogger(
             EmailService.class);
 
