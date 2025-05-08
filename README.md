@@ -13,6 +13,11 @@ Other repos:
 * [Frontend for Students](https://github.com/Slotify-txy/frontend_student)
 * [Frontend for Coaches](https://github.com/Slotify-txy/frontend_coach)
 
+  
+[Go to student-end website](https://www.slotify-student.com/)
+
+[Go to coach-end website](https://www.slotify-coach.com/)
+
 ## Features
 * Students can submit availbility by selecting time slots and confirm/reject/accept/cancel appointments.
 * Coaches can publish open hours, schedule classes based on students' availbility, and confirm/reject/accept/cancel appointments. 
